@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Battle Canvas</title>
+    <link rel="stylesheet" href="public/css/style.css">
+</head>
+<body>
+    <div id="livestream-container">
+        <!-- YouTube Embed will go here -->
+        <div id="player"></div>
+    </div>
+    
+    <div id="game-container">
+        <h1>Robot Battle Arena</h1>
+        
+        <div id="game-info">
+            <div id="timer-container">
+                <h2>Time Remaining: <span id="timer">30:00</span></h2>
+            </div>
+            <div id="score-container">
+                <div class="team-score" id="red-score">
+                    <h2>Red Team: <span id="red-count">0</span>/7</h2>
+                </div>
+                <div class="team-score" id="blue-score">
+                    <h2>Blue Team: <span id="blue-count">0</span>/7</h2>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Class selection screen -->
+        <div id="class-selection">
+            <h2>Choose Your Class</h2>
+            <div id="team-buttons">
+                <button id="join-red" class="team-select">Join Red Team</button>
+                <button id="join-blue" class="team-select">Join Blue Team</button>
+            </div>
+            <div id="class-options" class="hidden">
+                <div class="class-card" data-class="fighter">
+                    <h3>Fighter</h3>
+                    <div class="class-image fighter-img"></div>
+                    <ul>
+                        <li>Range: 1 square</li>
+                        <li>Damage: High (20)</li>
+                        <li>Health: 100</li>
+                        <li>Movement: 3 squares</li>
+                    </ul>
+                </div>
+                <div class="class-card" data-class="archer">
+                    <h3>Archer</h3>
+                    <div class="class-image archer-img"></div>
+                    <ul>
+                        <li>Range: 6 squares</li>
+                        <li>Damage: Medium (10)</li>
+                        <li>Health: 70</li>
+                        <li>Movement: 4 squares</li>
+                    </ul>
+                </div>
+                <div class="class-card" data-class="magician">
+                    <h3>Magician</h3>
+                    <div class="class-image magician-img"></div>
+                    <ul>
+                        <li>Range: 3 squares</li>
+                        <li>Damage: Very High (20)</li>
+                        <li>Health: 60</li>
+                        <li>Movement: 2 squares</li>
+                    </ul>
+                </div>
+                <div class="class-card" data-class="healer">
+                    <h3>Healer</h3>
+                    <div class="class-image healer-img"></div>
+                    <ul>
+                        <li>Healing: 15 points</li>
+                        <li>Range: 1 square</li>
+                        <li>Health: 80</li>
+                        <li>Movement: 3 squares</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game canvas -->
+        <canvas id="battle-canvas"></canvas>
+        
+        <div id="player-stats" class="hidden">
+            <div class="stat-item">
+                <span class="stat-label">Health:</span>
+                <div id="health-bar"><div id="health-fill"></div></div>
+                <span id="health-text">100/100</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Cooldown:</span>
+                <div id="cooldown-indicator"></div>
+            </div>
+            <div class="stat-item" id="player-class-display">Fighter - Red Team</div>
+        </div>
+        
+        <div id="game-legend">
+            <h3>Map Legend</h3>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #1e1e1e;"></div>
+                <span>Open Terrain</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #196619;"></div>
+                <span>Forest (Line of Sight Reduced)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: rgba(255, 255, 0, 0.2);"></div>
+                <span>Valid Move Targets</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: rgba(255, 0, 0, 0.2);"></div>
+                <span>Valid Attack Targets</span>
+            </div>
+        </div>
+        <button id="regenerate-terrain-button" style="background: #996633; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-left: 5px;">Regenerate Terrain</button>
+        <h3>Terrain Types</h3>
+        <div class="terrain-legend">
+            <div class="terrain-item">
+                <div class="terrain-color grass-color"></div>
+                <span>Grass (Open)</span>
+            </div>
+            <div class="terrain-item">
+                <div class="terrain-color forest-color"></div>
+                <span>Forest (Blocks Line of Sight)</span>
+            </div>
+            <div class="terrain-item">
+                <div class="terrain-color water-color"></div>
+                <span>Water (Impassable)</span>
+            </div>
+            <div class="terrain-item">
+                <div class="terrain-color mountain-color"></div>
+                <span>Mountain (Impassable)</span>
+            </div>
+        </div>
+        
+        <div id="status-message">Select a team to join the battle!</div>
+        
+        <div id="game-instructions">
+            <h3>How to Play</h3>
+            <ul>
+                <li>Join a team and select your character class</li>
+                <li>Move by clicking on highlighted yellow squares</li>
+                <li>Attack enemies by clicking on highlighted red squares</li>
+                <li>Capture control points (circles) by standing near them</li>
+                <li>Win by capturing all control points or having the most when time runs out</li>
+                <li>Forests can block line of sight for attacks and movement</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Socket.io -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <!-- YouTube API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    
+    <!-- Game scripts -->
+    <script src="public/js/game.js"></script>
+
+    <div style="position: fixed; bottom: 10px; right: 10px;">
+        <button id="debug-button" style="background: #333; color: white; border: none; padding: 5px 10px; cursor: pointer;">Debug</button>
+        <button id="refresh-targets-button" style="background: #336699; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-left: 5px;">Refresh Targets</button>
+    </div>
+      
+    <script>
+        document.getElementById('regenerate-terrain-button').addEventListener('click', function() {
+            if (socket) {
+                socket.emit('regenerateTerrain');
+                console.log("Requested terrain regeneration from server");
+            }
+        });
+
+        document.getElementById('debug-button').addEventListener('click', function() {
+            // Request current game state from server
+            if (socket) {
+                socket.emit('requestGameState');
+                console.log("Game state requested");
+            }
+            
+            // Check client-side game variables
+            console.log("Client game state:");
+            console.log("- Time remaining:", timeRemaining);
+            console.log("- Control points:", controlPoints);
+            console.log("- Players:", players);
+            console.log("- Current team:", currentTeam);
+            console.log("- Current class:", currentClass);
+            console.log("- Valid move targets:", validMoveTargets ? validMoveTargets.length : 0);
+            console.log("- Valid attack targets:", validAttackTargets ? validAttackTargets.length : 0);
+        });
+        
+        document.getElementById('refresh-targets-button').addEventListener('click', function() {
+            if (socket && currentTeam && currentClass) {
+                socket.emit('requestMoveTargets');
+                socket.emit('requestAttackTargets');
+                console.log("Requested fresh targets from server");
+            } else {
+                console.log("Not in game yet");
+            }
+        });
+    </script>
+</body>
+</html>
